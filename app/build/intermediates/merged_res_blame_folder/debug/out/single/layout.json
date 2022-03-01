@@ -1,0 +1,30 @@
+[
+    {
+        "merged": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/fragment_home.xml",
+        "source": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/src/main/res/layout/fragment_home.xml"
+    },
+    {
+        "merged": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/fragment_graficas.xml",
+        "source": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/src/main/res/layout/fragment_graficas.xml"
+    },
+    {
+        "merged": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/nav_header_main.xml",
+        "source": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/src/main/res/layout/nav_header_main.xml"
+    },
+    {
+        "merged": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/content_main.xml",
+        "source": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/src/main/res/layout/content_main.xml"
+    },
+    {
+        "merged": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/activity_main.xml",
+        "source": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/src/main/res/layout/activity_main.xml"
+    },
+    {
+        "merged": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/fragment_reportes.xml",
+        "source": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/src/main/res/layout/fragment_reportes.xml"
+    },
+    {
+        "merged": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/app_bar_main.xml",
+        "source": "/home/fernanrod/AndroidStudioProjects/Practica1Compiladores14/app/src/main/res/layout/app_bar_main.xml"
+    }
+]

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_editor">
+
+    <fragment
+        android:id="@+id/nav_editor"
+        android:name="com.example.practica1compiladores1.ui.home.HomeFragment"
+        android:label="@string/menu_editor"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_nav_home_to_nav_graficas"
+            app:destination="@id/nav_graficas" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_reportes"
+            app:destination="@id/nav_reportes" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_graficas"
+        android:name="com.example.practica1compiladores1.ui.graficas.GraficasFragment"
+        android:label="@string/menu_graficas"
+        tools:layout="@layout/fragment_graficas" >
+        <action
+            android:id="@+id/action_nav_graficas_to_nav_home"
+            app:destination="@id/nav_editor" />
+        <action
+            android:id="@+id/action_nav_graficas_to_nav_reportes"
+            app:destination="@id/nav_reportes" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_reportes"
+        android:name="com.example.practica1compiladores1.ui.reportes.ReportesFragment"
+        android:label="@string/menu_reportes"
+        tools:layout="@layout/fragment_reportes" >
+        <action
+            android:id="@+id/action_nav_reportes_to_nav_graficas"
+            app:destination="@id/nav_graficas" />
+        <action
+            android:id="@+id/action_nav_reportes_to_nav_home"
+            app:destination="@id/nav_editor" />
+    </fragment>
+</navigation>

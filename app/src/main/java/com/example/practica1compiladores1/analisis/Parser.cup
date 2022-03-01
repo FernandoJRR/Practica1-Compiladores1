@@ -1,0 +1,574 @@
+package com.example.practica1compiladores1.analisis;
+
+import java_cup.runtime.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.example.practica1compiladores1.modelo.Grafico;
+import com.example.practica1compiladores1.modelo.GraficoBarras;
+import com.example.practica1compiladores1.modelo.GraficoPie;
+import com.example.practica1compiladores1.modelo.TipoGrafico;
+import com.example.practica1compiladores1.modelo.TipoPie;
+import com.example.practica1compiladores1.modelo.Unir;
+
+parser code
+{:
+    private Symbol s;
+
+    public void syntax_error(Symbol s){
+        this.s = s;
+    }
+    
+    public void unrecovered_syntax_error(Symbol s){
+        this.s = s;
+        agregarError("Error Fatal. No se pudo recuperar del error encontrado");
+    }
+
+    public Symbol getS(){
+        return this.s;
+    }
+
+    private ArrayList<OperadorEncontrado> listaOperacionesAritmeticas = new ArrayList<>();
+    public ArrayList<OperadorEncontrado> getListaOperaciones(){
+        return listaOperacionesAritmeticas;
+    }
+
+    private ArrayList<CompilerError> errores = new ArrayList<>();
+    public void setErrores(ArrayList<CompilerError> errores){
+        this.errores = errores;
+    }
+    public ArrayList<CompilerError> getErrores(){
+        return errores;
+    }
+
+    public void agregarError(String mensajeError){
+        if (s.value == null) {
+            errores.add(new CompilerError("EOF", new int[]{s.right,s.left}, TipoError.Sintactico, mensajeError));
+        } else {
+            errores.add(new CompilerError(s.value.toString(), new int[]{s.right,s.left}, TipoError.Sintactico, mensajeError));
+        }
+    }
+
+    public void agregarError(String mensajeError, String simbolo){
+        errores.add(new CompilerError(simbolo, new int[]{s.right,s.left}, TipoError.Sintactico, mensajeError));
+    }
+
+
+    private ArrayList<Grafico> graficasDefinidas = new ArrayList<>();
+
+    private GraficoBarras graficaBarrasActual = null;
+    private GraficoPie graficaPieActual = null;
+
+    private TipoGrafico tipoGraficoActual = null;
+    private String tituloActual = null;
+    private ArrayList<String> ejeXActual = null;
+    private ArrayList<Float> ejeYActual = null;
+    private ArrayList<String> etiquetasActuales = null;
+    private ArrayList<Float> valoresActuales = null;
+    private ArrayList<float[]> tuplasActuales = null;
+    private TipoPie tipoPieActual = null;
+    private Float totalActual = null;
+    private String extraActual = null;
+
+
+    public ArrayList<Grafico> getGraficasDefinidas(){
+        return graficasDefinidas;
+    }
+
+    private String cortarCadena(String cadena){
+        return cadena.substring(1, cadena.length()-1);
+    }
+
+    private void resetAtributosActuales(){
+        graficaBarrasActual = null;
+        graficaPieActual = null;
+        tipoGraficoActual = null;
+        tituloActual = null;
+        ejeXActual = null;
+        ejeYActual = null;
+        etiquetasActuales = null;
+        valoresActuales = null;
+        tuplasActuales = null;
+        tipoPieActual = null;
+        totalActual = null;
+        extraActual = null;
+    }
+
+    private void definirGrafico(){
+        if (tipoGraficoActual == TipoGrafico.Barras){
+            graficaBarrasActual = new GraficoBarras(
+                TipoGrafico.Barras,
+                tituloActual,
+                new Unir(tuplasActuales),
+                ejeXActual,
+                ejeYActual
+            );
+            graficasDefinidas.add(graficaBarrasActual);
+            resetAtributosActuales();
+        } else if (tipoGraficoActual == TipoGrafico.Pie) {
+            graficaPieActual = new GraficoPie(
+                TipoGrafico.Pie,
+                tituloActual,
+                new Unir(tuplasActuales),
+                etiquetasActuales,
+                valoresActuales,
+                tipoPieActual,
+                totalActual,
+                extraActual
+            );
+            graficasDefinidas.add(graficaPieActual);
+            resetAtributosActuales();
+        } else {
+            //agregarError("Tipo de grafico no definido");
+            resetAtributosActuales();
+        }
+    }
+
+    private void imprimirGraficas(){
+        for(Grafico grafica: graficasDefinidas){
+            if(grafica instanceof GraficoBarras){
+                System.out.println("Grafico barras");
+                System.out.println("Titulo:");
+                System.out.println(grafica.getTitulo()==null? "null":grafica.getTitulo());
+                System.out.println("Unir:");
+                System.out.println(grafica.getUnir() == null? "null":grafica.getUnir().toString());
+                System.out.println("EjeX:");
+                System.out.println(((GraficoBarras) grafica).getEjeX()==null? "null":((GraficoBarras) grafica).getEjeX().toString());
+                System.out.println("EjeY:");
+                System.out.println(((GraficoBarras) grafica).getEjeY()==null? "null":((GraficoBarras) grafica).getEjeY().toString());
+                System.out.println();
+            } else if(grafica instanceof GraficoPie){
+                System.out.println("Grafico pie");
+                System.out.println("Titulo:");
+                System.out.println(grafica.getTitulo()==null? "null":grafica.getTitulo());
+                System.out.println("Unir:");
+                System.out.println(grafica.getUnir()==null? "null":grafica.getUnir().toString());
+                System.out.println("Etiquetas:");
+                System.out.println(((GraficoPie) grafica).getEtiquetas()==null? "null":((GraficoPie) grafica).getEtiquetas().toString());
+                System.out.println("Valores:");
+                System.out.println(((GraficoPie) grafica).getValores()==null? "null":((GraficoPie) grafica).getValores().toString());
+                System.out.println("Tipo Pie:");
+                System.out.println(((GraficoPie) grafica).getTipoPie()==null? "null":((GraficoPie) grafica).getTipoPie().toString());
+                System.out.println("Total:");
+                System.out.println(((GraficoPie) grafica).getTotal()==null? "null":((GraficoPie) grafica).getTotal().toString());
+                System.out.println("Extra:");
+                System.out.println(((GraficoPie) grafica).getExtra()==null? "null":((GraficoPie) grafica).getExtra().toString());
+                System.out.println();
+            }
+        }
+    }
+
+    private void imprimirEjecuciones(){
+        for(String ejecucion: ejecucionesGraficos){
+            System.out.println(ejecucion);
+        }
+    }
+
+    private ArrayList<String> listaCadenasActual = new ArrayList<>();
+    private ArrayList<Float> listaNumerosActual = new ArrayList<>();
+    private ArrayList<float[]> listaTuplasActual = new ArrayList<>();
+    private float[] tuplaActual = new float[2];
+
+    private ArrayList<String> ejecucionesGraficos = new ArrayList<>();
+
+    public ArrayList<String> getEjecucionesGraficos(){
+        return ejecucionesGraficos;
+    }
+:};
+
+terminal P_R_Def, P_R_TipoGrafico, P_R_Titulo, P_R_EjeX, P_R_EjeY,
+        P_R_Etiquetas, P_R_Valores, P_R_Unir, P_R_Tipo, P_R_Total,
+        P_R_Extra, T_G_Cantidad, T_G_Porcentajes, P_R_Ejecutar,
+        Sim_Comillas, Sim_Punto, Sim_Coma, Sim_DPuntos, Sim_PComa,
+        Oper_Suma, Oper_Resta, Oper_Multi, Oper_Div,
+        Par_Izq, Par_Der, Llave_Izq, Llave_Der, Corch_Izq, Corch_Der,
+        Cadena, Entero, Decimal
+;
+
+non terminal INICIO, DEFINICIONES, DEFINICION, ATRIBUTOS, RECUPERACION_VALOR_ATRIBUTO, DECLARACION_ATRIBUTO,
+        LISTA_CADENAS, CADENAS, CADENASD, LISTA_NUMEROS, NUMEROS, NUMEROSD,
+        LISTA_TUPLAS, TUPLAS, TUPLASD, TUPLA, TUPLAD, EXPRESION_MATEMATICA, EJECUCION, EJECUCIOND, EJECUCIONDD
+;
+
+precedence left Oper_Suma, Oper_Resta;
+precedence left Oper_Multi, Oper_Div;
+
+start with INICIO;
+
+INICIO ::= DEFINICIONES EJECUCION //{:imprimirGraficas();:}
+;
+
+DEFINICIONES ::=  DEFINICION DEFINICIONES
+                | {:System.out.println("Todas las definiciones realizadas");:}
+;
+
+DEFINICION ::= P_R_Def P_R_TipoGrafico:tipoGrafica Llave_Izq 
+                    {:
+                    System.out.println("Grafica definida. Tipo "+tipoGrafica);
+                    tipoGraficoActual = TipoGrafico.valueOf(tipoGrafica.toString());
+                    :}
+                    ATRIBUTOS
+                    {:
+                    System.out.println("Definicion Terminada, Atributos definidos correctamente");
+                    definirGrafico();
+                    :}
+
+        //Se definen las producciones de error
+        | error Llave_Izq {:
+        agregarError("Definicion incorrecta, se esperaba tipo de grafico");
+        System.out.println("Error tipo grafico");
+        :} 
+        ATRIBUTOS 
+        {:
+        System.out.println("Definicion Terminada, Atributos definidos correctamente");
+        definirGrafico();
+        :}
+
+        | error 
+            {:
+            agregarError("Se esperaba {");
+            System.out.println("Error {");
+            :}
+        ATRIBUTOS 
+            {:
+            System.out.println("Definicion Terminada, Atributos definidos correctamente");
+            definirGrafico();
+            :}
+            
+        
+        | error Sim_PComa {:
+        agregarError("Definicion incorrecta de atributo");:}
+        ATRIBUTOS
+        {:
+        System.out.println("Definicion Terminada, Atributos definidos correctamente");
+        definirGrafico();
+        :}
+            
+        | error P_R_TipoGrafico:tipoGrafica Llave_Izq 
+            {:
+            agregarError("Definicion incorrecta, se esperaba \'Def\' o \'def\'");
+            System.out.println("Grafica definida. Tipo "+tipoGrafica);
+            tipoGraficoActual = TipoGrafico.valueOf(tipoGrafica.toString());
+            :} 
+            ATRIBUTOS
+            {:
+            System.out.println("Grafica definida. Tipo "+tipoGrafica);
+
+            if (tipoGraficoActual != null) {
+                agregarError("Se had declarado mas de una vez el atributo de tipo de graficos");
+            } else {
+                tipoGraficoActual = TipoGrafico.valueOf(tipoGrafica.toString());
+            }
+            definirGrafico();
+            :}
+            
+
+;
+
+ATRIBUTOS ::= DECLARACION_ATRIBUTO Sim_PComa ATRIBUTOS
+            | Llave_Der
+            
+            | error {:
+                System.out.println(tipoGraficoActual);
+                System.out.println("Definicion Terminada, Atributos definidos correctamente");
+                agregarError("Se esperaba }");
+                definirGrafico();
+            :} DEFINICION 
+
+            | error P_R_TipoGrafico:tG {:
+            agregarError("Definicion incorrecta, se esperaba \'Def\' o \'def\'");
+            System.out.println("Definicion Iniciada:\n"+"Tipo: \n-"+tG+"\nAtributos:");
+            :} Llave_Izq ATRIBUTOS 
+;
+DECLARACION_ATRIBUTO ::= P_R_Titulo Sim_DPuntos Cadena:titulo
+                        {:
+                        System.out.println("-Titulo: "+titulo);
+                        if (tituloActual != null) {
+                            agregarError("Se had declarado mas de una vez el atributo de titulo");
+                        } else {
+                            tituloActual = cortarCadena(titulo.toString());
+                        }
+                        :}
+
+                    | P_R_Tipo Sim_DPuntos T_G_Cantidad
+                    {:
+                    System.out.println("-Tipo: Cantidad");
+                    if (tipoPieActual != null) {
+                        agregarError("Se had declarado mas de una vez el atributo de tipo de pie");
+                    } else {
+                        tipoPieActual = TipoPie.valueOf("Cantidad");
+                    }
+                    :}
+                    | P_R_Tipo Sim_DPuntos T_G_Porcentajes
+                    {:
+                    System.out.println("-Tipo: Porcentaje");
+                    if (tipoPieActual != null) {
+                        agregarError("Se had declarado mas de una vez el atributo de tipo de pie");
+                    } else {
+                        tipoPieActual = TipoPie.valueOf("Porcentaje");
+                    }
+                    :}
+
+                    | P_R_EjeX Sim_DPuntos LISTA_CADENAS
+                    {:System.out.println("-EjeX:");
+                        for(String cadena:listaCadenasActual){System.out.print(cadena+" ");}
+                        System.out.println();
+                        if (ejeXActual != null) {
+                            agregarError("Se had declarado mas de una vez el atributo de Eje X");
+                        } else {
+                            ejeXActual = listaCadenasActual;
+                        }
+                        listaCadenasActual=new ArrayList<>();
+                    :}
+
+                    | P_R_EjeY Sim_DPuntos LISTA_NUMEROS
+                    {:System.out.println("-EjeY:");
+                        for(Float numero:listaNumerosActual){System.out.print(numero+" ");}
+                        System.out.println();
+                        if (ejeYActual != null) {
+                            agregarError("Se had declarado mas de una vez el atributo de Eje Y");
+                        } else {
+                            ejeYActual = listaNumerosActual;
+                        }
+                        listaNumerosActual=new ArrayList<>();
+                    :}
+
+                    | P_R_Etiquetas Sim_DPuntos LISTA_CADENAS
+                    {:System.out.println("-Etiquetas:");
+                        for(String cadena:listaCadenasActual){System.out.print(cadena+" ");}
+                        System.out.println();
+                        if (etiquetasActuales != null) {
+                            agregarError("Se had declarado mas de una vez el atributo de Etiquetas");
+                        } else {
+                            etiquetasActuales = listaCadenasActual;
+                        }
+                        listaCadenasActual=new ArrayList<>();
+                    :}
+
+                    | P_R_Valores Sim_DPuntos LISTA_NUMEROS
+                    {:System.out.println("-Valores:");
+                        for(Float numero:listaNumerosActual){System.out.print(numero+" ");}
+                        System.out.println();
+                        if (valoresActuales != null) {
+                            agregarError("Se had declarado mas de una vez el atributo de Valores");
+                        } else {
+                            valoresActuales = listaNumerosActual;
+                        }
+                        listaNumerosActual=new ArrayList<>();
+                    :}
+
+                    | P_R_Unir Sim_DPuntos LISTA_TUPLAS
+                    {:System.out.println("-Unir:");
+                        for(float[] tupla:listaTuplasActual){System.out.print("("+tupla[0]+" "+tupla[1]+"}");}
+                        System.out.println();
+                        if (tuplasActuales != null) {
+                            agregarError("Se had declarado mas de una vez el atributo de Unir");
+                        } else {
+                            tuplasActuales = listaTuplasActual;
+                        }
+                        listaTuplasActual=new ArrayList<>();
+                    :}
+
+                    | P_R_Total Sim_DPuntos EXPRESION_MATEMATICA:exp
+                    {:
+                    System.out.println("-Total:");
+                    if (totalActual != null) {
+                        agregarError("Se had declarado mas de una vez el atributo de Total");
+                    } else {
+                        totalActual = Float.parseFloat(exp.toString());
+                    }
+                    :}
+
+                    | P_R_Extra Sim_DPuntos Cadena:extra
+                    {:
+                    System.out.println("-Extra: "+extra);
+                    if (extraActual != null) {
+                        agregarError("Se had declarado mas de una vez el atributo de Extra");
+                    } else {
+                        extraActual = cortarCadena(extra.toString());
+                    }
+                    :}
+
+                    //Se definen las producciones de error
+                    | error Sim_DPuntos RECUPERACION_VALOR_ATRIBUTO {:
+                    agregarError("Tipo de atributo invalido o no definido");:}
+                    | error Sim_PComa {:
+                    agregarError("Definicion incorrecta de atributo");:}
+                    | error Corch_Der Sim_PComa {:
+                    agregarError("Lista mal definida");:}
+
+;
+RECUPERACION_VALOR_ATRIBUTO ::= Cadena:texto
+                            {:System.out.println("-Texto: "+texto);:}
+                            | LISTA_CADENAS
+                            {:System.out.println("-Lista Cadenas: ");:}
+                            | LISTA_NUMEROS
+                            {:System.out.println("-Lista Numeros: ");:}
+                            | LISTA_TUPLAS
+                            {:System.out.println("-Lista Tuplas:");:}
+                            | T_G_Cantidad
+                            {:System.out.println("-Tipo: Cantidad");:}
+                            | T_G_Porcentajes
+                            {:System.out.println("-Tipo: Porcetaje");:}
+                            | EXPRESION_MATEMATICA:exp
+                            {:System.out.println("-Matematica: "+Float.parseFloat(exp.toString()));:}
+;
+
+LISTA_CADENAS ::= Corch_Izq CADENAS Corch_Der
+
+                //Se definen las producciones de error
+                | error CADENAS Corch_Der {:
+                agregarError("Se esperaba [");:}
+;
+CADENAS ::= Cadena:cadena CADENASD {:listaCadenasActual.add(0, cortarCadena(cadena.toString()));:}
+
+            //Se definen las producicones de error
+            | error Cadena:cadena {:
+            agregarError("Se esperaba Cadena, o un atributo no fue definido correctamente");
+            listaCadenasActual.add(cortarCadena(cadena.toString()));
+            :} CADENASD
+;
+CADENASD ::= Sim_Coma Cadena:cadena
+                {:listaCadenasActual.add(cortarCadena(cadena.toString()));:} CADENASD
+            |
+
+            //Se definen las producciones de error
+            | error Cadena:cadena {:
+            agregarError("Se esperaba Coma");
+            listaCadenasActual.add(cortarCadena(cadena.toString()));:}
+            CADENASD
+            | error {:
+            agregarError("Se esperaba Cadena");:}
+            CADENASD
+;
+
+LISTA_NUMEROS ::= Corch_Izq NUMEROS Corch_Der
+
+                //Se definen las producciones de error
+                | error NUMEROS Corch_Der {:
+                agregarError("Se esperaba [");:}
+;
+NUMEROS ::= EXPRESION_MATEMATICA:exp NUMEROSD {:RESULT = Float.parseFloat(exp.toString());listaNumerosActual.add(0,Float.parseFloat(RESULT.toString()));:}
+
+            //Se definen las producicones de error
+            | error NUMEROSD {:
+            agregarError("Se esperaba Numero, o un atributo no fue definido correctamente");:}
+;
+NUMEROSD ::= Sim_Coma EXPRESION_MATEMATICA:exp NUMEROSD
+                {:RESULT = Float.parseFloat(exp.toString());listaNumerosActual.add(Float.parseFloat(RESULT.toString()));:}
+            |
+
+            //Se definen las producciones de error
+            | error EXPRESION_MATEMATICA:exp {:
+            agregarError("Se esperaba Coma");
+            RESULT = Float.parseFloat(exp.toString());
+            listaNumerosActual.add(Float.parseFloat(RESULT.toString()));:}
+            NUMEROSD
+            | error NUMEROSD {:
+            agregarError("Se esperaba Numero");:}
+
+;
+
+LISTA_TUPLAS ::= Corch_Izq TUPLAS Corch_Der
+                | error TUPLAS Corch_Der {:
+                agregarError("Se esperaba [");:}
+;
+TUPLAS ::= Llave_Izq TUPLA Llave_Der TUPLASD
+
+            //Se definen las producicones de error
+            | error TUPLA Llave_Der TUPLASD {:
+            agregarError("Se esperaba {");
+            System.out.println("Error en tupla");
+            :}
+            | error Llave_Izq TUPLA Llave_Der TUPLASD {:
+            agregarError("Se esperaba Tupla");:}
+;
+TUPLASD ::= Sim_Coma Llave_Izq TUPLA Llave_Der TUPLASD
+        |
+
+        //Se definen las producciones de error
+        | error Llave_Izq TUPLA Llave_Der TUPLASD {:
+        agregarError("Se esperaba una Coma");:}
+        | error TUPLA Llave_Der TUPLASD {:
+        agregarError("Se esperaba una {");:}
+        | error Llave_Der TUPLASD {:
+        agregarError("Se definio incorrectamente la tupla");:}
+;
+
+TUPLA ::= EXPRESION_MATEMATICA:exp Sim_Coma TUPLAD
+        {:RESULT = Float.parseFloat(exp.toString());
+        tuplaActual[0] = Float.parseFloat(RESULT.toString());
+        listaTuplasActual.add(tuplaActual);
+        tuplaActual = new float[2];:}
+;
+TUPLAD ::= EXPRESION_MATEMATICA:exp {:RESULT = Float.parseFloat(exp.toString());tuplaActual[1] = Float.parseFloat(RESULT.toString());:}
+
+        //Se definen las producciones de error
+        | error Llave_Der TUPLASD{:
+        agregarError("Se esperaba una Expresion Matematica");:}
+;
+
+EXPRESION_MATEMATICA ::= EXPRESION_MATEMATICA:exp1 Oper_Suma:operador  EXPRESION_MATEMATICA:exp2
+                        {:RESULT = Float.parseFloat(exp1.toString())+Float.parseFloat(exp2.toString());
+                        System.out.print(exp1+"+"+exp2);
+                        listaOperacionesAritmeticas.add(new OperadorEncontrado("Suma", new int[]{operadorright,operadorleft}, exp1.toString()+"+"+exp2.toString()));:}
+
+                    | EXPRESION_MATEMATICA:exp1 Oper_Resta:operador  EXPRESION_MATEMATICA:exp2
+                        {:RESULT = Float.parseFloat(exp1.toString())-Float.parseFloat(exp2.toString());
+                        System.out.print(exp1+"-"+exp2);
+                        listaOperacionesAritmeticas.add(new OperadorEncontrado("Resta", new int[]{operadorright,operadorleft}, exp1.toString()+"-"+exp2.toString()));:}
+
+                    | EXPRESION_MATEMATICA:exp1 Oper_Multi:operador EXPRESION_MATEMATICA:exp2
+                        {:RESULT = Float.parseFloat(exp1.toString())*Float.parseFloat(exp2.toString());
+                        System.out.print(exp1+"*"+exp2);
+                        listaOperacionesAritmeticas.add(new OperadorEncontrado("Multiplicacion", new int[]{operadorright,operadorleft}, exp1.toString()+"*"+exp2.toString()));:}
+
+                    | EXPRESION_MATEMATICA:exp1 Oper_Div:operador  EXPRESION_MATEMATICA:exp2
+                        {:RESULT = Float.parseFloat(exp1.toString())/Float.parseFloat(exp2.toString());
+                        System.out.print(exp1+"/"+exp2);
+                        listaOperacionesAritmeticas.add(new OperadorEncontrado("Division", new int[]{operadorright,operadorleft}, exp1.toString()+"/"+exp2.toString()));:}
+
+
+                    | Par_Izq  EXPRESION_MATEMATICA:exp Par_Der {:System.out.print("("+exp+")");RESULT = Float.parseFloat(exp.toString());:}
+
+                    | Entero:entero {:RESULT = Float.parseFloat(entero.toString());System.out.print(RESULT+" ");:}
+
+                    | Decimal:decimal {:RESULT = Float.parseFloat(decimal.toString());System.out.print(RESULT+" ");:}
+;
+
+EJECUCION ::= P_R_Ejecutar EJECUCIOND
+            | Par_Izq:token Cadena:grafica Par_Der EJECUCIONDD {:
+            errores.add(new CompilerError("(",new int[]{tokenright,tokenleft},TipoError.Sintactico,"Se esperaba la palabra reservada Ejecutar"));
+            ejecucionesGraficos.add(cortarCadena(grafica.toString()));
+            :}
+;
+
+EJECUCIOND ::= Par_Izq Cadena:grafica Par_Der EJECUCIONDD
+                {:ejecucionesGraficos.add(cortarCadena(grafica.toString()));:}
+
+            //Se definen las producciones de error
+            | error Par_Izq Cadena:grafica Par_Der EJECUCIONDD {:
+            agregarError("Se esperaba palabra reservada Ejecutar");
+            ejecucionesGraficos.add(cortarCadena(grafica.toString()));
+            :}
+            | error Cadena Par_Der EJECUCIONDD {:
+            agregarError("Se esperaba (");:}
+            | error Par_Der {:
+            agregarError("Se esperaba Cadena");:} EJECUCIONDD
+            | error {:
+            agregarError("Comando Ejecutar mal definido");:} EJECUCIONDD
+;
+
+EJECUCIONDD ::= Sim_PComa P_R_Ejecutar EJECUCIOND
+                | Sim_PComa
+
+            //Se definen las producciones de error
+            | error P_R_Ejecutar {:
+            agregarError("Se esperaba ;");:} EJECUCIOND
+
+            | error {:agregarError("Solo se pueden ejecutar graficas al final del archivo");:} DEFINICION DEFINICIONES EJECUCION
+
+            | error {:
+            agregarError("Se esperaba ;");:}
+            
+;
